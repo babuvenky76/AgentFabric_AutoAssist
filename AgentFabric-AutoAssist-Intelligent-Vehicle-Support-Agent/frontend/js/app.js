@@ -122,6 +122,9 @@ async function sendChatQuery(query) {
     queryInput.disabled = true;
     showLoadingSpinner(true);
     
+    // Add processing message
+    const processingMsgId = addMessageToChat('🤖 Processing your query... This may take up to 5 minutes. Please wait...', 'system');
+    
     try {
         // Add user message to chat
         addMessageToChat(query, 'user');
@@ -141,6 +144,9 @@ async function sendChatQuery(query) {
                 body: JSON.stringify({ query })
             }
         );
+        
+        // Remove processing message
+        removeMessageFromChat(processingMsgId);
         
         if (!response.ok) {
             throw new Error(`API error: ${response.status}`);
@@ -168,6 +174,7 @@ async function sendChatQuery(query) {
         
     } catch (error) {
         console.error('Chat error:', error);
+        removeMessageFromChat(processingMsgId);
         addMessageToChat(`Error: ${error.message}`, 'error');
         showToast('Failed to send message. Check your connection.', 'error');
     } finally {
@@ -181,6 +188,8 @@ async function sendChatQuery(query) {
 
 function addMessageToChat(message, sender) {
     const messageEl = document.createElement('div');
+    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    messageEl.id = messageId;
     messageEl.className = `message ${sender}`;
     
     const time = new Date().toLocaleTimeString();
@@ -188,6 +197,12 @@ function addMessageToChat(message, sender) {
     if (sender === 'error') {
         messageEl.innerHTML = `
             <div class="error-message">
+                ${escapeHtml(message)}
+            </div>
+        `;
+    } else if (sender === 'system') {
+        messageEl.innerHTML = `
+            <div class="system-message">
                 ${escapeHtml(message)}
             </div>
         `;
@@ -200,6 +215,15 @@ function addMessageToChat(message, sender) {
     
     chatContainer.appendChild(messageEl);
     chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    return messageId;
+}
+
+function removeMessageFromChat(messageId) {
+    const messageEl = document.getElementById(messageId);
+    if (messageEl) {
+        messageEl.remove();
+    }
 }
 
 function updateCharCount() {

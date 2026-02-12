@@ -6,5 +6,6 @@ global:
 
 scrape_configs:
   - job_name: 'autoassist'
+    metrics_path: '/metrics/prometheus'
     static_configs:
-      - targets: ['autoassist:8000']  # Docker Compose service name
+      - targets: ['autoassist-api:8000']  # Docker Compose service name

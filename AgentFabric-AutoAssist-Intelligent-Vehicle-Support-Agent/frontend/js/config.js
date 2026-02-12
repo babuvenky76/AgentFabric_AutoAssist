@@ -15,7 +15,7 @@ const CONFIG = {
     },
     
     // Request Configuration
-    REQUEST_TIMEOUT: 30000, // 30 seconds
+    REQUEST_TIMEOUT: 300000, // 300 seconds (5 minutes)
     
     // Retry Policy
     MAX_RETRIES: 3,
