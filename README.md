@@ -6,11 +6,12 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![Security](https://img.shields.io/badge/Security-Hardened-green.svg)](#-security--hardening)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Enterprise-ready LLM-powered assistant with full observability, safety guardrails, and production deployment**
 
-[Quick Start](#-quick-start) • [Architecture](#-architecture) • [API Docs](#-api-reference) • [Monitoring](#-observability)
+[Quick Start](#-quick-start) • [Security](#-security--hardening) • [Architecture](#-architecture) • [API Docs](#-api-reference) • [Monitoring](#-observability)
 
 </div>
 
@@ -32,6 +33,59 @@ AutoAssist isn't just another chatbot demo. It's a **production-grade AI system*
 | **Structured Logging** | JSON format with request IDs | Centralized log aggregation ready |
 
 **Perfect for:** Learning production AI patterns, building POCs, or deploying to production with minimal changes.
+
+---
+
+## 🔒 Security & Hardening
+
+AutoAssist implements multiple layers of security for production deployment:
+
+### Input Security
+- **Strict Input Validation**: Regex patterns for query and session_id fields
+- **Length Limits**: Max 1000 chars for queries, 100 for session IDs
+- **Input Sanitization**: Automatic trimming and cleaning of user input
+- **Injection Prevention**: Alphanumeric + basic punctuation only
+
+### API Security
+- **CORS Restrictions**: Whitelist-only origins (no wildcards in production)
+- **Method Restrictions**: Only GET and POST allowed
+- **Header Restrictions**: Limited to Content-Type and Authorization
+- **Error Sanitization**: Generic error messages (no internal details exposed)
+
+### Container Security
+- **Non-Root User**: Application runs as `appuser` (not root)
+- **Minimal Image**: Slim base image with cleaned package cache
+- **Read-Only Filesystem**: Application code owned by non-root user
+- **Health Checks**: Automated container health monitoring
+
+### Secrets Management
+- **Environment Variables**: All secrets loaded from .env (never hardcoded)
+- **Git Protection**: .env excluded from version control
+- **Token Rotation**: API tokens configurable without code changes
+- **Grafana Security**: Password from environment, secure cookies, CSRF protection
+
+### Monitoring & Audit
+- **Structured Logging**: JSON format with request IDs for audit trails
+- **Metrics Collection**: Track errors, latency, success rates
+- **Request Tracking**: Full request lifecycle logging
+- **Exception Logging**: Detailed server-side error logs (not exposed to clients)
+
+### Production Recommendations
+```bash
+# Set strong Grafana password
+GRAFANA_ADMIN_PASSWORD=your-strong-password
+
+# Disable debug mode
+DEBUG=false
+
+# Use INFO or WARNING log level
+LOG_LEVEL=INFO
+
+# Add rate limiting (future enhancement)
+# Add authentication layer (JWT/OAuth)
+# Enable HTTPS/TLS
+# Implement API key validation
+```
 
 ---
 

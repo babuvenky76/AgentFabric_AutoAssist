@@ -27,13 +27,18 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Add CORS middleware to allow cross-origin requests from frontend
+# Add CORS middleware - PRODUCTION: Restrict origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        # TODO: Add production domains here
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],  # Restrict to only needed methods
+    allow_headers=["Content-Type", "Authorization"],  # Restrict headers
+    max_age=600,  # Cache preflight requests for 10 minutes
 )
 
 # Initialize agent
@@ -42,9 +47,20 @@ agent = AutoAssistAgent(config)
 
 # Request/Response models
 class ChatRequest(BaseModel):
-    """Chat request schema"""
-    query: str = Field(..., min_length=1, max_length=1000, description="User query")
-    session_id: Optional[str] = Field(None, description="Optional session ID for tracking")
+    """Chat request schema with strict validation"""
+    query: str = Field(
+        ..., 
+        min_length=1, 
+        max_length=1000, 
+        description="User query",
+        pattern=r'^[\w\s\?\.\,\!\-\'\"\(\)]+$'  # Alphanumeric + basic punctuation only
+    )
+    session_id: Optional[str] = Field(
+        None, 
+        description="Optional session ID for tracking",
+        max_length=100,
+        pattern=r'^[a-zA-Z0-9\-_]+$'  # Alphanumeric, hyphens, underscores only
+    )
 
 
 class ChatResponse(BaseModel):
@@ -89,10 +105,13 @@ async def chat(request: ChatRequest):
     start_time = time.time()
     
     try:
-        logger.info(f"Chat request received: {request.query[:50]}...")
+        # Sanitize input - remove any potential injection attempts
+        sanitized_query = request.query.strip()
+        
+        logger.info(f"Chat request received: {sanitized_query[:50]}...")
         
         # Process query through agent
-        result = await agent.process_query(request.query)
+        result = await agent.process_query(sanitized_query)
         
         # Calculate latency
         latency_ms = (time.time() - start_time) * 1000
@@ -107,24 +126,23 @@ async def chat(request: ChatRequest):
             logger.warning(f"Agent returned error: {result.get('error')} (latency: {latency_ms:.2f}ms)")
             raise HTTPException(
                 status_code=500,
-                detail=result.get("error", "Failed to process query")
+                detail="Failed to process query. Please try again."  # Don't expose internal errors
             )
         
         logger.info(f"Chat request processed successfully (latency: {latency_ms:.2f}ms)")
         return ChatResponse(**result)
         
     except HTTPException:
-        # Re-raise HTTP exceptions without further processing
         raise
     except ValueError as e:
         latency_ms = (time.time() - start_time) * 1000
         metrics.record_request(latency_ms=latency_ms, error=True)
         logger.error(f"Validation error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail="Invalid request format")
     except Exception as e:
         latency_ms = (time.time() - start_time) * 1000
         metrics.record_request(latency_ms=latency_ms, error=True)
-        logger.error(f"Unexpected error in /chat: {str(e)}")
+        logger.error(f"Unexpected error in /chat: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
