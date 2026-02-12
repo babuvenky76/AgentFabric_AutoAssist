@@ -1,0 +1,3 @@
+"""
+AutoAssist test suite
+"""

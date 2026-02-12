@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoAssist - Intelligent Vehicle Support Agent</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <h1 class="logo">🚗 AutoAssist</h1>
+                    <p class="tagline">Intelligent Vehicle Support Agent</p>
+                </div>
+                <div class="status-section">
+                    <div class="status-badge" id="statusBadge">
+                        <span class="status-indicator" id="statusIndicator"></span>
+                        <span id="statusText">Checking...</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="layout">
+                <!-- Chat Section -->
+                <section class="chat-section">
+                    <div class="chat-header">
+                        <h2>Vehicle Support Chat</h2>
+                        <span class="model-info" id="modelInfo">Model: Loading...</span>
+                    </div>
+                    
+                    <div class="chat-container" id="chatContainer">
+                        <div class="welcome-message">
+                            <h3>Welcome to AutoAssist</h3>
+                            <p>Ask me anything about your vehicle!</p>
+                            <div class="example-queries">
+                                <p class="example-title">Try asking:</p>
+                                <ul>
+                                    <li>"How do I check my tire pressure?"</li>
+                                    <li>"What does the check engine light mean?"</li>
+                                    <li>"How often should I change my oil?"</li>
+                                    <li>"What should I do if my battery warning light appears?"</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-section">
+                        <form id="chatForm" class="chat-form">
+                            <input 
+                                type="text" 
+                                id="queryInput" 
+                                class="chat-input" 
+                                placeholder="Ask your vehicle question here..."
+                                maxlength="1000"
+                            >
+                            <button type="submit" class="chat-button" id="chatButton">
+                                <span>Send</span>
+                                <span class="send-icon">→</span>
+                            </button>
+                        </form>
+                        <div class="char-count">
+                            <span id="charCount">0</span>/1000
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Metrics Section -->
+                <aside class="metrics-section">
+                    <div class="metrics-header">
+                        <h2>Agent Metrics</h2>
+                        <button class="refresh-btn" id="refreshMetrics" title="Refresh metrics">
+                            🔄
+                        </button>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-label">Total Requests</span>
+                            <span class="metric-value" id="totalRequests">0</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Total Errors</span>
+                            <span class="metric-value error" id="totalErrors">0</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Avg Latency</span>
+                            <span class="metric-value" id="avgLatency">0ms</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Success Rate</span>
+                            <span class="metric-value success" id="successRate">100%</span>
+                        </div>
+                    </div>
+
+                    <div class="health-section">
+                        <h3>Service Health</h3>
+                        <div class="health-item">
+                            <span class="health-label">API Status</span>
+                            <span class="health-value" id="apiStatus">
+                                <span class="health-indicator unknown"></span>
+                                Unknown
+                            </span>
+                        </div>
+                        <div class="health-item">
+                            <span class="health-label">LLM Model</span>
+                            <span class="health-value" id="llmModel">Loading...</span>
+                        </div>
+                        <div class="health-item">
+                            <span class="health-label">Last Updated</span>
+                            <span class="health-value" id="lastUpdated">Never</span>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <h3>Configuration</h3>
+                        <div class="config-item">
+                            <label for="apiEndpoint">API Endpoint</label>
+                            <input 
+                                type="text" 
+                                id="apiEndpoint" 
+                                class="config-input" 
+                                placeholder="http://localhost:8000"
+                                value="http://localhost:8000"
+                            >
+                        </div>
+                        <button class="config-button" id="saveConfig">Save Settings</button>
+                    </div>
+                </aside>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2026 AutoAssist by Babu Srinivasan | AgentFabric Project 01</p>
+            <div class="footer-links">
+                <a href="https://github.com" target="_blank">GitHub</a>
+                <a href="/docs" target="_blank">API Docs</a>
+                <a href="https://prometheus:9090" target="_blank">Prometheus</a>
+                <a href="https://grafana:3000" target="_blank">Grafana</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
