@@ -72,49 +72,6 @@ flowchart TD
 
 ---
 
-# ⚙️ Implementation Plan (8-Day Execution)
-
-## Day 1 – Project Setup
-- Initialize repository
-- Setup virtual environment
-- Configure local LLM via LMStudio
-- Create environment-based config
-
-## Day 2 – Agent Core
-- Implement system prompt
-- Build LangGraph single-node flow
-- Add input/output validation
-
-## Day 3 – FastAPI Integration
-- Create `/chat` endpoint
-- Add request schema validation
-- Implement response formatting
-
-## Day 4 – LLM Abstraction Layer
-- Build configurable LLM adapter
-- Add support for local and API modes
-- Add timeout and retry handling
-
-## Day 5 – Logging & Observability
-- Add structured logging
-- Integrate OpenTelemetry
-- Add request tracing
-
-## Day 6 – Dockerization
-- Create Dockerfile
-- Add docker-compose
-- Add environment configs
-
-## Day 7 – Testing & Hardening
-- Add unit tests
-- Add error handling
-- Validate prompt safety constraints
-
-## Day 8 – Documentation & Content
-- Write README
-- Create architecture diagram
-- Record YouTube demo
-- Publish LinkedIn deep dive
 
 ---
 
