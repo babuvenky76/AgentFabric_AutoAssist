@@ -167,6 +167,8 @@ flowchart TD
 | **Logging** | Python logging | Structured JSON logs |
 | **Container** | Docker Compose | Multi-service orchestration |
 
+**Note:** This implementation uses a lightweight custom agent without LangChain/LangGraph dependencies, making it simpler and more maintainable.
+
 ---
 
 ## 📂 Project Structure
