@@ -1,180 +1,191 @@
+# AutoAssist – Production-Grade AI Vehicle Support Agent
+### AgentFabric Project 01 | By Babu Srinivasan
 
-# AgentFabric Project 01  
-# AutoAssist – Intelligent Vehicle Support Agent  
-### By Babu Srinivasan  
+<div align="center">
 
----
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-# 🚗 AgentFabric AutoAssist
+**Enterprise-ready LLM-powered assistant with full observability, safety guardrails, and production deployment**
 
-AutoAssist is a **production-grade, enterprise-ready** single-agent AI system designed for automotive OEMs to provide intelligent, real-time vehicle support to customers and service teams.
+[Quick Start](#-quick-start) • [Architecture](#-architecture) • [API Docs](#-api-reference) • [Monitoring](#-observability)
 
-This project demonstrates how to build a configurable, containerized, open-source LLM-powered assistant capable of running locally or deploying to cloud environments.
-
-## 🏢 Enterprise-Ready Features
-
-Unlike simple chatbots, AutoAssist is built with enterprise production standards:
-
-- **🛡️ Safety Guardrails**: Domain-restricted prompts prevent financial/medical advice, hallucinations controlled
-- **📊 Full Observability**: Prometheus metrics + Grafana dashboards for real-time monitoring
-- **📝 Structured Logging**: JSON-formatted logs with request tracking and latency metrics
-- **🔄 Retry Logic**: Automatic retry with exponential backoff for LLM failures
-- **⚡ Performance Monitoring**: Track request rates, error rates, latency, and success rates
-- **🐳 Production Deployment**: Fully containerized with Docker Compose, health checks, and graceful shutdown
-- **🔌 LLM Abstraction**: Swap between local models (LMStudio) and cloud APIs without code changes
-- **⏱️ Timeout Handling**: Configurable timeouts (270s) for long-running LLM operations
-- **🎯 Input Validation**: Request size limits, type checking, and sanitization
-- **📈 Scalability Ready**: Stateless design, horizontal scaling capable
-
-This is not just a demo—it's a foundation for enterprise AI deployments.
+</div>
 
 ---
 
-# 📋 Prerequisites
+## 🎯 What Makes This Enterprise-Ready?
 
-Before running AutoAssist, ensure you have the following installed:
+AutoAssist isn't just another chatbot demo. It's a **production-grade AI system** built with enterprise standards:
 
-## Required Software
+| Feature | Implementation | Why It Matters |
+|---------|---------------|----------------|
+| **Safety Guardrails** | Domain-restricted prompts, input validation | Prevents hallucinations, inappropriate responses |
+| **Full Observability** | Prometheus + Grafana + structured logging | Real-time monitoring, debugging, alerting |
+| **Retry Logic** | 3 attempts with exponential backoff | Handles transient LLM failures gracefully |
+| **LLM Abstraction** | Pluggable adapter pattern | Swap models without code changes |
+| **Timeout Handling** | Configurable 270s timeout | Prevents hanging requests |
+| **Health Checks** | Kubernetes-ready endpoints | Container orchestration support |
+| **Stateless Design** | No session persistence | Horizontal scaling ready |
+| **Structured Logging** | JSON format with request IDs | Centralized log aggregation ready |
 
-| Software | Version | Purpose | Download Link |
-|----------|---------|---------|---------------|
-| **Docker** | 20.10+ | Container runtime | [Get Docker](https://docs.docker.com/get-docker/) |
-| **Docker Compose** | 2.0+ | Multi-container orchestration | Included with Docker Desktop |
-| **LMStudio** | Latest | Local LLM server | [lmstudio.ai](https://lmstudio.ai/) |
-| **Python** | 3.10+ | Local development (optional) | [python.org](https://www.python.org/downloads/) |
-
-## System Requirements
-
-- **OS**: macOS, Linux, or Windows with WSL2
-- **RAM**: 8GB minimum (16GB recommended for LLM)
-- **Disk**: 10GB free space
-- **CPU**: Multi-core processor recommended
-
-## LMStudio Setup
-
-1. Download and install LMStudio from [lmstudio.ai](https://lmstudio.ai/)
-2. Download a model (recommended: Qwen, Mistral, or Llama3)
-3. Start the local server:
-   - Open LMStudio
-   - Go to "Local Server" tab
-   - Click "Start Server" (default port: 1234)
-   - Enable API authentication and copy the API token
-4. Configure to accept network connections:
-   - In server settings, ensure it listens on `0.0.0.0` or allow network access
-   - Note your API token for configuration
+**Perfect for:** Learning production AI patterns, building POCs, or deploying to production with minimal changes.
 
 ---
 
-# 🚀 Quick Start Guide
+## 🚀 Quick Start
 
-## Step 1: Clone the Repository
+### Prerequisites
 
 ```bash
-git clone <repository-url>
+# Required
+- Docker 20.10+ & Docker Compose 2.0+
+- LMStudio (for local LLM)
+
+# Optional
+- Python 3.10+ (for local development)
+```
+
+### 3-Minute Setup
+
+```bash
+# 1. Clone and navigate
+git clone <repo-url>
 cd AgentFabric-AutoAssist-Intelligent-Vehicle-Support-Agent
-```
 
-## Step 2: Configure Environment
-
-```bash
-# Copy the example environment file
+# 2. Configure environment
 cp .env.example .env
+# Edit .env: Set MODEL_NAME, API_TOKEN from LMStudio
 
-# Edit .env with your settings
-nano .env  # or use your preferred editor
+# 3. Start everything
+docker-compose up -d
+
+# 4. Verify
+curl http://localhost:8000/health
 ```
 
-**Required Configuration:**
+**Access Points:**
+- Frontend: http://localhost:3000
+- API Docs: http://localhost:8000/docs
+- Grafana: http://localhost:3001 (admin/admin)
+- Prometheus: http://localhost:9090
+
+---
+
+## 🏗 Architecture
+
+### System Overview
+
+```mermaid
+flowchart LR
+    A[Client] -->|HTTP| B[FastAPI]
+    B -->|Process| C[Agent]
+    C -->|Query| D[LLM]
+    D -->|Response| C
+    C -->|Return| B
+    B -->|Metrics| E[Prometheus]
+    E -->|Visualize| F[Grafana]
+```
+
+### Metrics Pipeline
+
+```mermaid
+flowchart TD
+    A[Request] -->|1. Process| B[Backend]
+    B -->|2. Record| C[MetricsCollector]
+    C -->|3. Expose| D[/metrics/prometheus]
+    E[Prometheus] -->|4. Scrape 15s| D
+    E -->|5. Store| F[Time-Series DB]
+    G[Grafana] -->|6. Query| E
+    G -->|7. Display| H[Dashboard]
+```
+
+### Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **API** | FastAPI | High-performance async REST API |
+| **Agent** | Custom Python | LLM orchestration & prompt management |
+| **LLM** | LMStudio (local) | Open-source model inference |
+| **Monitoring** | Prometheus + Grafana | Metrics collection & visualization |
+| **Logging** | Python logging | Structured JSON logs |
+| **Container** | Docker Compose | Multi-service orchestration |
+
+---
+
+## 📂 Project Structure
+
+```
+AgentFabric-AutoAssist-Intelligent-Vehicle-Support-Agent/
+├── app/
+│   ├── main.py              # FastAPI app & endpoints
+│   ├── agent.py             # Agent logic & prompts
+│   ├── llm_adapter.py       # LLM abstraction layer
+│   ├── config.py            # Environment configuration
+│   └── observability.py     # Metrics & logging
+├── frontend/
+│   ├── index.html           # Chat UI
+│   ├── js/app.js            # Frontend logic
+│   └── css/styles.css       # Styling
+├── observability/
+│   ├── prometheus.yml       # Prometheus config
+│   └── grafana/             # Grafana dashboards
+├── docker-compose.yml       # Service orchestration
+├── Dockerfile               # Backend container
+├── .env.example             # Configuration template
+└── requirements.txt         # Python dependencies
+```
+
+---
+
+## 🔧 Configuration
+
+### Environment Variables
 
 ```bash
 # LLM Configuration
-MODEL_PROVIDER=local
-MODEL_NAME=qwen3-esper3-reasoning-coder-instruct-6b-brainstorm20x-mlx-mlx  # Your model name
+MODEL_PROVIDER=local                    # local or api
+MODEL_NAME=qwen3-esper3-reasoning...    # Your model from LMStudio
 API_ENDPOINT=http://host.docker.internal:1234/v1
-API_TOKEN=your-lmstudio-api-token-here
-TIMEOUT_SECONDS=270
+API_TOKEN=sk-lm-xxxxx                   # From LMStudio auth
+TIMEOUT_SECONDS=270                     # 4.5 minutes
+MAX_TOKENS=1024                         # Response length
+TEMPERATURE=0.7                         # Randomness (0-1)
 
-# Application Configuration
+# Application
 APP_NAME=AutoAssist
-LOG_LEVEL=INFO
+LOG_LEVEL=INFO                          # DEBUG, INFO, WARNING, ERROR
+DEBUG=false
 ```
 
-**Important Notes:**
-- Use `host.docker.internal` for Docker to access LMStudio on your host machine
-- Get your model name from LMStudio's "Local Server" tab
-- Copy the API token from LMStudio's authentication settings
+### LMStudio Setup
 
-## Step 3: Start All Services
-
-```bash
-# Build and start all containers
-docker-compose up --build
-
-# Or run in detached mode (background)
-docker-compose up -d
-```
-
-**Expected Output:**
-```
-✔ Container autoassist-prometheus   Started
-✔ Container autoassist-api          Started
-✔ Container autoassist-frontend     Started
-✔ Container autoassist-grafana      Started
-```
-
-## Step 4: Verify Services are Running
-
-```bash
-# Check all containers are up
-docker-compose ps
-
-# Test backend health
-curl http://localhost:8000/health
-
-# Expected response:
-# {"status":"healthy","service":"AutoAssist","version":"0.1.0"}
-```
-
-## Step 5: Access the Application
-
-Open your browser and navigate to:
-
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| **Frontend UI** | http://localhost:3000 | None |
-| **API Documentation** | http://localhost:8000/docs | None |
-| **Prometheus** | http://localhost:9090 | None |
-| **Grafana Dashboard** | http://localhost:3001 | admin / admin |
+1. Download from [lmstudio.ai](https://lmstudio.ai/)
+2. Load a model (Qwen, Mistral, Llama3)
+3. Start server (port 1234)
+4. Enable auth & copy token
+5. Ensure network access enabled
 
 ---
 
-# ✅ Success Criteria
+## 📡 API Reference
 
-Your AutoAssist deployment is successful when:
+### Endpoints
 
-## 1. All Services are Healthy
+#### `POST /chat`
+Process a vehicle support query.
 
-```bash
-docker-compose ps
-```
-All containers should show status: `Up` and `(healthy)`
-
-## 2. Backend Responds to Health Checks
-
-```bash
-curl http://localhost:8000/health
-```
-Returns: `{"status":"healthy","service":"AutoAssist","version":"0.1.0"}`
-
-## 3. Chat Endpoint Works
-
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What should I do if my check engine light is on?"}'
+**Request:**
+```json
+{
+  "query": "What should I do if my check engine light is on?",
+  "session_id": "user-123"  // optional
+}
 ```
 
-**Expected Response:**
+**Response:**
 ```json
 {
   "status": "success",
@@ -184,468 +195,260 @@ curl -X POST http://localhost:8000/chat \
 }
 ```
 
-## 4. Frontend UI is Accessible
+#### `GET /health`
+Health check endpoint.
 
-- Navigate to http://localhost:3000
-- You should see the AutoAssist chat interface
-- Type a question and receive a response (may take 20-60 seconds)
-
-## 5. Metrics are Being Collected
-
-```bash
-curl http://localhost:8000/metrics
-```
-
-**Expected Response:**
+**Response:**
 ```json
 {
-  "total_requests": 1,
+  "status": "healthy",
+  "service": "AutoAssist",
+  "version": "0.1.0"
+}
+```
+
+#### `GET /metrics`
+JSON-formatted metrics.
+
+**Response:**
+```json
+{
+  "total_requests": 42,
   "total_errors": 0,
   "avg_latency_ms": 25000.0,
   "success_rate": 100.0
 }
 ```
 
-## 6. Prometheus is Scraping
-
-- Open http://localhost:9090
-- Go to Status → Targets
-- `autoassist` target should show state: **UP**
-
-## 7. Grafana Dashboard Shows Data
-
-- Open http://localhost:3001
-- Login with admin/admin
-- Navigate to Dashboards → AutoAssist Monitoring Dashboard
-- You should see:
-  - Total Requests counter
-  - Success Rate gauge (should be 100%)
-  - Latency graphs
-  - Request rate over time
+#### `GET /metrics/prometheus`
+Prometheus text format metrics.
 
 ---
 
-# 🧪 Testing the System
+## 📊 Observability
 
-## Test Scenario 1: Basic Query
-
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What is tire pressure?"}'
-```
-
-## Test Scenario 2: Complex Query
-
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"query": "My car makes a squeaking noise when I brake. What could be wrong?"}'
-```
-
-## Test Scenario 3: Session Tracking
-
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"query": "How often should I change my oil?", "session_id": "user-123"}'
-```
-
-## Test Scenario 4: Frontend UI
-
-1. Open http://localhost:3000
-2. Type: "What should I do if my battery warning light appears?"
-3. Wait for response (20-60 seconds)
-4. Verify you see a processing indicator
-5. Verify response appears in chat
-
-## Test Scenario 5: Metrics Validation
-
-```bash
-# Send multiple requests
-for i in {1..5}; do
-  curl -X POST http://localhost:8000/chat \
-    -H "Content-Type: application/json" \
-    -d "{\"query\": \"Test query $i\"}" &
-done
-wait
-
-# Check metrics increased
-curl http://localhost:8000/metrics
-```
-
----
-
-# 🛠️ Troubleshooting
-
-## Issue: "Connection refused" when calling /chat
-
-**Cause**: LMStudio is not running or not accessible from Docker
-
-**Solution**:
-1. Verify LMStudio server is running on port 1234
-2. Check API token is correct in `.env`
-3. Ensure `.env` uses `host.docker.internal` not `localhost`
-4. Test connection: `curl http://localhost:1234/v1/models -H "Authorization: Bearer YOUR_TOKEN"`
-
-## Issue: Requests timeout after 270 seconds
-
-**Cause**: LLM model is too slow or overloaded
-
-**Solution**:
-1. Use a smaller/faster model in LMStudio
-2. Reduce `MAX_TOKENS` in `.env` (try 512 instead of 1024)
-3. Increase `TIMEOUT_SECONDS` in `.env` if needed
-
-## Issue: Grafana dashboard is empty
-
-**Cause**: No requests have been processed yet
-
-**Solution**:
-1. Send a few test requests to `/chat`
-2. Wait 15 seconds for Prometheus to scrape
-3. Refresh Grafana dashboard
-
-## Issue: Docker containers won't start
-
-**Cause**: Port conflicts or insufficient resources
-
-**Solution**:
-```bash
-# Check what's using the ports
-lsof -i :8000  # Backend
-lsof -i :3000  # Frontend
-lsof -i :9090  # Prometheus
-lsof -i :3001  # Grafana
-
-# Stop conflicting services or change ports in docker-compose.yml
-```
-
-## Issue: "Dashboard title cannot be empty" in Grafana logs
-
-**Cause**: Dashboard provisioning failed
-
-**Solution**:
-```bash
-# Recreate Grafana container
-docker-compose stop grafana
-docker-compose rm -f grafana
-docker-compose up -d grafana
-```
-
----
-
-# 🎯 Business Problem
-
-Automotive OEMs face recurring challenges:
-
-- Customers struggle to interpret vehicle manuals.
-- Service centers receive repetitive diagnostic queries.
-- Knowledge is fragmented across PDFs, SOPs, and service bulletins.
-- Support teams are overloaded with Tier-1 queries.
-
-AutoAssist solves this by delivering a conversational AI layer capable of:
-
-- Explaining vehicle features
-- Providing troubleshooting guidance
-- Offering maintenance recommendations
-- Interpreting warning indicators
-- Supporting multilingual extensibility
-
----
-
-# 💡 Key Highlights
-
-- Fully open-source LLM support (Mistral / Llama3 via LMStudio)
-- Configurable LLM backend (local or API-based)
-- FastAPI REST backend
-- Structured system prompts for safety
-- Dockerized and production-ready
-- Logging & observability enabled
-- Cloud-portable architecture
-- Extensible to RAG in future phases
-
----
-
-# 🧱 Tech Stack
-
-- Python 3.10+
-- FastAPI
-- LangGraph (stateful agent orchestration)
-- Open-source LLM (Mistral / Llama3)
-- Docker & Docker Compose
-- OpenTelemetry
-- Prometheus (optional)
-- Grafana (optional)
-
----
-
-# 🏗 Solution Architecture
-
-```mermaid
-flowchart TD
-    A[Client UI / API Call] --> B[FastAPI Backend]
-    B --> C[LangGraph Agent]
-    C --> D[LLM Engine]
-    D --> C
-    C --> B
-    B --> A
-```
-
----
-
-# 📊 Observability & Metrics Flow
-
-## Complete Metrics Pipeline
-
-```mermaid
-flowchart TD
-    A[User Request] -->|POST /chat| B[FastAPI Backend]
-    B -->|Process Request| C[Agent + LLM]
-    C -->|Response| B
-    B -->|Record Metrics| D[MetricsCollector In-Memory]
-    D -->|Stores| E[request_count<br/>error_count<br/>latency_ms]
-    
-    F[Prometheus] -->|Scrapes every 15s| G[GET /metrics/prometheus]
-    G -->|Returns Text Format| F
-    F -->|Stores in| H[Time-Series Database<br/>/prometheus/wal]
-    
-    I[Grafana Dashboard] -->|Queries| F
-    F -->|Returns Data| I
-    I -->|Visualizes| J[Graphs & Gauges]
-    
-    style D fill:#e1f5ff
-    style F fill:#ffe1e1
-    style I fill:#e1ffe1
-```
-
-## Metrics Flow Steps
-
-**Step 1: Backend Generates Metrics**
-- Each request is processed by `app/main.py`
-- Metrics recorded via `metrics.record_request(latency_ms, error)`
-- Stored in-memory by `MetricsCollector` class in `app/observability.py`
-
-**Step 2: Metrics Exposed via HTTP**
-- Endpoint: `GET /metrics/prometheus`
-- Returns Prometheus text format:
-  ```
-  autoassist_requests_total 4
-  autoassist_errors_total 0
-  autoassist_request_latency_ms 38039.67
-  autoassist_success_rate 100.0
-  ```
-
-**Step 3: Prometheus Scrapes Metrics**
-- Configured in `observability/prometheus.yml`
-- Scrapes `http://autoassist-api:8000/metrics/prometheus` every 15 seconds
-- Stores data in time-series database at `/prometheus/`
-
-**Step 4: Grafana Queries Prometheus**
-- Datasource configured: `http://prometheus:9090`
-- Dashboard panels query metrics like `autoassist_requests_total`
-- Visualizes as graphs, gauges, and stats
-- Auto-refreshes every 5 seconds
-
-## Available Metrics
+### Available Metrics
 
 | Metric | Type | Description |
 |--------|------|-------------|
-| `autoassist_requests_total` | Counter | Total number of chat requests processed |
-| `autoassist_errors_total` | Counter | Total number of failed requests |
-| `autoassist_request_latency_ms` | Gauge | Average response latency in milliseconds |
-| `autoassist_success_rate` | Gauge | Success rate percentage (0-100) |
+| `autoassist_requests_total` | Counter | Total requests processed |
+| `autoassist_errors_total` | Counter | Total failed requests |
+| `autoassist_request_latency_ms` | Gauge | Average response time |
+| `autoassist_success_rate` | Gauge | Success percentage (0-100) |
 
-## Access Points
-
-- **Backend API**: http://localhost:8000
-- **Metrics (JSON)**: http://localhost:8000/metrics
-- **Metrics (Prometheus)**: http://localhost:8000/metrics/prometheus
-- **Prometheus UI**: http://localhost:9090
-- **Grafana Dashboard**: http://localhost:3001 (admin/admin)
-- **Frontend UI**: http://localhost:3000
-
----
-
-# ⚙️ Implementation Plan (8-Day Execution)
-
-## Day 1 – Project Setup
-- Initialize repository
-- Setup virtual environment
-- Configure local LLM via LMStudio
-- Create environment-based config
-
-## Day 2 – Agent Core
-- Implement system prompt
-- Build LangGraph single-node flow
-- Add input/output validation
-
-## Day 3 – FastAPI Integration
-- Create `/chat` endpoint
-- Add request schema validation
-- Implement response formatting
-
-## Day 4 – LLM Abstraction Layer
-- Build configurable LLM adapter
-- Add support for local and API modes
-- Add timeout and retry handling
-
-## Day 5 – Logging & Observability
-- Add structured logging
-- Integrate OpenTelemetry
-- Add request tracing
-
-## Day 6 – Dockerization
-- Create Dockerfile
-- Add docker-compose
-- Add environment configs
-
-## Day 7 – Testing & Hardening
-- Add unit tests
-- Add error handling
-- Validate prompt safety constraints
-
-## Day 8 – Documentation & Content
-- Write README
-- Create architecture diagram
-- Record YouTube demo
-- Publish LinkedIn deep dive
-
----
-
-# 📂 Repository Structure
-
-```
-agentfabric-01-autoassist/
-│
-├── app/
-│   ├── main.py
-│   ├── agent.py
-│   ├── llm_adapter.py
-│   ├── config.py
-│
-├── tests/
-├── docker-compose.yml
-├── Dockerfile
-├── .env.example
-├── requirements.txt
-└── README.md
-```
-
----
-
-# 🔐 Safety & Guardrails
-
-- Domain-restricted system prompts
-- No financial or medical advice responses
-- Structured output enforcement
-- Timeout and retry handling
-- LLM abstraction layer for swap-in control
-
----
-
-# 🚀 Deployment
-
-## Local Run
-
-```bash
-uvicorn app.main:app --reload
-```
-
-## Docker
-
-```bash
-docker-compose up --build
-```
-
----
-
-# 📈 Observability
-
-AutoAssist includes a complete observability stack with Prometheus and Grafana for monitoring system health and performance.
-
-## Quick Start
-
-1. **Start all services:**
-   ```bash
-   docker-compose up --build
-   ```
-
-2. **Access Grafana Dashboard:**
-   - URL: http://localhost:3001
-   - Login: admin / admin
-   - Dashboard: "AutoAssist Monitoring Dashboard"
-
-3. **Access Prometheus:**
-   - URL: http://localhost:9090
-   - Try queries like: `autoassist_requests_total`
-
-## What You Can Monitor
-
-- **Total Requests**: Track usage and load
-- **Error Rate**: Identify failures and issues
-- **Response Latency**: Monitor LLM performance (typically 20-60 seconds)
-- **Success Rate**: Overall system health (should be >95%)
-- **Request Rate**: Requests per minute over time
-
-## Useful Prometheus Queries
+### Prometheus Queries
 
 ```promql
-# Total requests
-autoassist_requests_total
-
 # Request rate (per minute)
 rate(autoassist_requests_total[5m]) * 60
 
 # Error rate
 rate(autoassist_errors_total[5m])
 
-# Average latency
-autoassist_request_latency_ms
-
-# Success rate
-autoassist_success_rate
+# 95th percentile latency (if histogram available)
+histogram_quantile(0.95, autoassist_request_duration_seconds_bucket)
 ```
 
-## Troubleshooting
+### Grafana Dashboard
 
-**Dashboard not showing data?**
-- Send a few test requests to `/chat` endpoint
-- Wait 15 seconds for Prometheus to scrape
-- Refresh Grafana dashboard
+Pre-configured dashboard includes:
+- Total requests counter
+- Success rate gauge (green >95%, yellow >80%, red <80%)
+- Average latency stat
+- Request rate graph
+- Latency over time graph
 
-**Prometheus not scraping?**
-- Check targets: http://localhost:9090/targets
-- Verify `autoassist` target shows "UP"
-- Check backend is running: `curl http://localhost:8000/health`
-
----
-
-# 🔄 Future Enhancements
-
-- Add RAG using vehicle manuals
-- Add VIN-based personalization
-- Add multilingual support
-- Add authentication layer
-- Add analytics dashboard
+**Access:** http://localhost:3001 → Dashboards → AutoAssist Monitoring Dashboard
 
 ---
 
-# 🏁 Conclusion
+## 🧪 Testing
 
-AutoAssist demonstrates how to design and deploy a production-ready single-agent AI system using fully open-source components.
+### Quick Tests
 
-It establishes foundational capabilities for:
+```bash
+# Health check
+curl http://localhost:8000/health
 
-- Agent orchestration
-- LLM abstraction
-- Production deployment
-- Observability integration
-- Enterprise-ready design
+# Simple query
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What is tire pressure?"}'
 
-This project marks the beginning of the AgentFabric journey — evolving from single-agent intelligence to distributed, enterprise-scale agentic platforms.
+# Check metrics
+curl http://localhost:8000/metrics
+
+# Load test (5 concurrent requests)
+for i in {1..5}; do
+  curl -X POST http://localhost:8000/chat \
+    -H "Content-Type: application/json" \
+    -d "{\"query\": \"Test $i\"}" &
+done
+wait
+```
+
+### Expected Behavior
+
+- **Response Time:** 20-60 seconds (depends on model)
+- **Success Rate:** >95% under normal conditions
+- **Error Handling:** Automatic retry on transient failures
+- **Timeout:** 270 seconds before giving up
 
 ---
 
-# 🔗 Part of AgentFabric by Babu Srinivasan
-Architecting Distributed Agentic Intelligence
+## 🛠️ Development
+
+### Local Development (No Docker)
+
+```bash
+# Setup
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Configure
+cp .env.example .env
+# Edit .env with localhost:1234 for LMStudio
+
+# Run
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Adding New Features
+
+**1. Add a new metric:**
+```python
+# app/observability.py
+class MetricsCollector:
+    def __init__(self):
+        self.custom_metric = 0
+    
+    def record_custom(self, value):
+        self.custom_metric += value
+```
+
+**2. Modify system prompt:**
+```python
+# app/agent.py
+SYSTEM_PROMPT = """Your custom prompt here..."""
+```
+
+**3. Add new endpoint:**
+```python
+# app/main.py
+@app.get("/custom")
+async def custom_endpoint():
+    return {"message": "Custom response"}
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Connection refused | LMStudio not running | Start LMStudio server on port 1234 |
+| Timeout after 270s | Model too slow | Use smaller model or increase timeout |
+| Empty Grafana dashboard | No requests yet | Send test requests, wait 15s |
+| Port conflicts | Services already running | Check `lsof -i :8000` and stop conflicts |
+| Auth errors | Wrong API token | Copy token from LMStudio settings |
+
+### Debug Mode
+
+```bash
+# Enable debug logging
+echo "LOG_LEVEL=DEBUG" >> .env
+docker-compose restart autoassist
+
+# View logs
+docker-compose logs -f autoassist
+
+# Check Prometheus targets
+curl http://localhost:9090/api/v1/targets | jq
+```
+
+---
+
+## 🚢 Production Deployment
+
+### Checklist
+
+- [ ] Change Grafana admin password
+- [ ] Set `DEBUG=false` in production
+- [ ] Configure proper `API_TOKEN` rotation
+- [ ] Set up external Prometheus/Grafana
+- [ ] Enable HTTPS/TLS
+- [ ] Add rate limiting
+- [ ] Configure log aggregation (ELK, Datadog)
+- [ ] Set up alerting rules
+- [ ] Implement authentication
+- [ ] Add request ID propagation
+
+### Scaling Considerations
+
+- **Horizontal Scaling:** Stateless design allows multiple replicas
+- **Load Balancing:** Use nginx/HAProxy in front of API
+- **Database:** Add Redis for session management if needed
+- **LLM:** Consider cloud LLM APIs for production scale
+
+---
+
+## 🎓 Learning Resources
+
+### Key Concepts Demonstrated
+
+1. **LLM Abstraction Pattern** - Swap models without code changes
+2. **Observability First** - Metrics before features
+3. **Retry Logic** - Handle transient failures gracefully
+4. **Health Checks** - Kubernetes-ready endpoints
+5. **Structured Logging** - JSON for log aggregation
+6. **Configuration Management** - Environment-based config
+7. **Container Orchestration** - Multi-service Docker Compose
+
+### Next Steps
+
+- Add RAG with vector database (Pinecone, Weaviate)
+- Implement authentication (JWT, OAuth)
+- Add rate limiting (Redis-based)
+- Set up CI/CD pipeline
+- Add unit/integration tests
+- Implement caching layer
+- Add multi-language support
+
+---
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE) file
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+---
+
+## 📞 Support
+
+- **Issues:** [GitHub Issues](https://github.com/your-repo/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/your-repo/discussions)
+- **Author:** Babu Srinivasan
+
+---
+
+<div align="center">
+
+**Part of AgentFabric Series**  
+*Architecting Distributed Agentic Intelligence*
+
+[⭐ Star this repo](https://github.com/your-repo) if you find it useful!
+
+</div>
