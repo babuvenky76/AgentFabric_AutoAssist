@@ -95,7 +95,7 @@ flowchart LR
 flowchart TD
     A[Request] -->|1. Process| B[Backend]
     B -->|2. Record| C[MetricsCollector]
-    C -->|3. Expose| D[/metrics/prometheus]
+    C -->|3. Expose| D["GET /metrics/prometheus"]
     E[Prometheus] -->|4. Scrape 15s| D
     E -->|5. Store| F[Time-Series DB]
     G[Grafana] -->|6. Query| E
